@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>註冊</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f4; text-align: center; margin-top: 80px; }
+        form { background: white; padding: 30px; display: inline-block; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+        input, button { display: block; margin: 10px auto; padding: 10px; width: 250px; font-size: 16px; }
+        p { color: red; }
+        a { text-decoration: none; color: #007BFF; }
+    </style>
+</head>
+<body>
+    <h2>註冊</h2>
+    {{if .Error}}<p>{{.Error}}</p>{{end}}
+    <form method="POST" action="/register">
+        <input type="text" name="username" placeholder="帳號" required>
+        <input type="text" name="cell_phone" placeholder="手機號碼" required>
+        <input type="password" name="password" placeholder="密碼" required>
+        <input type="password" name="password2" placeholder="再次輸入密碼" required>
+        <button type="submit">註冊</button>
+    </form>
+    <p><a href="/login">返回登入</a></p>
+</body>
+</html>
