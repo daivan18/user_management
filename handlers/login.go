@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
+	"os" // 💡 引入 os 套件以讀取環境變數
 	"strings"
 )
 
@@ -59,7 +60,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	bodyBytes, _ := json.Marshal(loginReq)
 
-	resp, err := http.Post("http://localhost:8001/login", "application/json", bytes.NewBuffer(bodyBytes))
+	// 💡 讀取環境變數，若無則預設為 http://localhost:8001
+	backendURL := os.Getenv("BACKEND_SERVICE_URL")
+	if backendURL == "" {
+		backendURL = "http://localhost:8001"
+	}
+
+	// 💡 將原本寫死的網址替換為 backendURL
+	resp, err := http.Post(backendURL+"/login", "application/json", bytes.NewBuffer(bodyBytes))
 	if err != nil || resp.StatusCode != http.StatusOK {
 		http.SetCookie(w, &http.Cookie{
 			Name:  "login_error",
@@ -67,7 +75,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			Path:  "/",
 		})
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		// http.Redirect(w, r, "/login?error=登入失敗，請確認帳號密碼", http.StatusSeeOther)
 		return
 	}
 	defer resp.Body.Close()

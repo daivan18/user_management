@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os" // 💡 引入 os 套件以讀取環境變數
 	"strings"
 
 	"user_management/models"
@@ -19,7 +20,14 @@ func UserEditPage(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	username := vars["username"]
 
-	resp, err := http.Get(fmt.Sprintf("http://localhost:8001/users/%s", username))
+	// 💡 讀取環境變數
+	backendURL := os.Getenv("BACKEND_SERVICE_URL")
+	if backendURL == "" {
+		backendURL = "http://localhost:8001"
+	}
+
+	// 💡 替換為 backendURL 變數
+	resp, err := http.Get(fmt.Sprintf("%s/users/%s", backendURL, username))
 	if err != nil || resp.StatusCode != 200 {
 		http.Error(w, "無法取得使用者資料", http.StatusInternalServerError)
 		return
@@ -65,7 +73,15 @@ func UserEditPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonBody, _ := json.Marshal(payload)
-	req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("http://localhost:8001/users/%s", username), bytes.NewBuffer(jsonBody))
+
+	// 💡 讀取環境變數
+	backendURL := os.Getenv("BACKEND_SERVICE_URL")
+	if backendURL == "" {
+		backendURL = "http://localhost:8001"
+	}
+
+	// 💡 替換為 backendURL 變數
+	req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/users/%s", backendURL, username), bytes.NewBuffer(jsonBody))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -83,7 +99,14 @@ func UserDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	username := vars["username"]
 
-	req, _ := http.NewRequest("DELETE", "http://localhost:8001/users/"+username, nil)
+	// 💡 讀取環境變數
+	backendURL := os.Getenv("BACKEND_SERVICE_URL")
+	if backendURL == "" {
+		backendURL = "http://localhost:8001"
+	}
+
+	// 💡 替換為 backendURL 變數
+	req, _ := http.NewRequest("DELETE", backendURL+"/users/"+username, nil)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil || resp.StatusCode != 200 {
@@ -104,7 +127,14 @@ func UsersPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := http.Get("http://localhost:8001/users")
+	// 💡 讀取環境變數
+	backendURL := os.Getenv("BACKEND_SERVICE_URL")
+	if backendURL == "" {
+		backendURL = "http://localhost:8001"
+	}
+
+	// 💡 替換為 backendURL 變數
+	resp, err := http.Get(backendURL + "/users")
 	if err != nil || resp.StatusCode != 200 {
 		http.Error(w, "無法取得使用者資料", http.StatusInternalServerError)
 		return
@@ -162,7 +192,15 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonBody, _ := json.Marshal(newUser)
-	resp, err := http.Post("http://localhost:8001/users", "application/json", bytes.NewBuffer(jsonBody))
+
+	// 💡 讀取環境變數
+	backendURL := os.Getenv("BACKEND_SERVICE_URL")
+	if backendURL == "" {
+		backendURL = "http://localhost:8001"
+	}
+
+	// 💡 替換為 backendURL 變數
+	resp, err := http.Post(backendURL+"/users", "application/json", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		showAlertAndRedirect(w, "註冊失敗，請稍後再試", "/register")
 		return
@@ -170,7 +208,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
-		// 嘗試解析錯誤訊息（假設 user-data-service 有回傳 JSON 格式錯誤）
 		var errResp map[string]string
 		json.NewDecoder(resp.Body).Decode(&errResp)
 		msg := errResp["error"]
@@ -187,15 +224,15 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 func showAlertAndRedirect(w http.ResponseWriter, message, redirectURL string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprintf(w, `
-		<!DOCTYPE html>
-		<html>
-		<head><meta charset="UTF-8"><title>通知</title></head>
-		<body>
-			<script>
-				alert(%q);
-				window.location.href = %q;
-			</script>
-		</body>
-		</html>
-	`, message, redirectURL)
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8"><title>通知</title></head>
+        <body>
+            <script>
+                alert(%q);
+                window.location.href = %q;
+            </script>
+        </body>
+        </html>
+    `, message, redirectURL)
 }
