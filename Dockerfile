@@ -1,5 +1,5 @@
 # 階段一：編譯階段
-FROM golang:1.21-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 # 設定工作目錄
 WORKDIR /app
