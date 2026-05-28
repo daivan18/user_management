@@ -24,6 +24,9 @@ WORKDIR /root/
 # 從編譯階段把執行檔 copy 過來
 COPY --from=builder /app/user-service .
 
+# 💡 新增這一行：必須把 templates 資料夾也複製到運行環境中
+COPY --from=builder /app/templates ./templates
+
 # 暴露 Cloud Run 預設的 8080 Port
 EXPOSE 8080
 
